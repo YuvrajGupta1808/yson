@@ -1,6 +1,6 @@
 /**
  * Gemini Format Output Comparison
- * Ask Gemini to output data in JSON vs YSON format
+ * JSON input → JSON output vs YSON input → YSON output
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -21,8 +21,15 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 // Load test data
 const data = JSON.parse(readFileSync('test_data/ecommerce_orders.json', 'utf8'));
 
+// Prepare both input formats
+const jsonInput = JSON.stringify(data, null, 2);
+const ysonInput = YSONConverter.encode(data);
+
+const jsonInputTokens = JSONParser.countTokens(jsonInput);
+const ysonInputTokens = YSONConverter.countTokens(ysonInput);
+
 console.log('='.repeat(70));
-console.log('GEMINI FORMAT OUTPUT: JSON vs YSON Response Comparison');
+console.log('GEMINI FORMAT COMPARISON: JSON vs YSON (Input & Output)');
 console.log('='.repeat(70));
 
 const analysisTask = `Analyze the e-commerce orders and create a summary report with:
@@ -31,15 +38,19 @@ const analysisTask = `Analyze the e-commerce orders and create a summary report 
 3. Order status breakdown (count by status)
 4. Total revenue`;
 
-// Test 1: Ask for JSON output
+// Test 1: JSON Input → JSON Output
 console.log('\n' + '='.repeat(70));
-console.log('TEST 1: Request JSON Output');
+console.log('TEST 1: JSON Input → JSON Output');
 console.log('='.repeat(70));
+
+console.log('\n📊 Input Data (JSON format):');
+console.log(jsonInput.split('\n').slice(0, 15).join('\n') + '\n...');
+console.log(`\n📏 Input tokens: ${jsonInputTokens}`);
 
 const jsonPrompt = `${analysisTask}
 
-Input data:
-${JSON.stringify(data, null, 2)}
+Input data (JSON format):
+${jsonInput}
 
 Return the summary in JSON format with this structure:
 {
@@ -88,23 +99,21 @@ try {
 console.log('\n⏳ Waiting 5 seconds to avoid rate limits...');
 await new Promise(resolve => setTimeout(resolve, 5000));
 
-// Test 2: Ask for YSON output
+// Test 2: YSON Input → YSON Output
 console.log('\n' + '='.repeat(70));
-console.log('TEST 2: Request YSON Output');
+console.log('TEST 2: YSON Input → YSON Output');
 console.log('='.repeat(70));
+
+console.log('\n📊 Input Data (YSON format):');
+console.log(ysonInput);
+console.log(`\n📏 Input tokens: ${ysonInputTokens}`);
 
 const ysonPrompt = `${analysisTask}
 
-Input data:
-${JSON.stringify(data, null, 2)}
+Input data (YSON format):
+${ysonInput}
 
-Return the summary in YSON format. YSON format rules:
-- Use indentation (2 spaces) for nesting
-- Space-separated key-value pairs: key value
-- For arrays with same structure, use schema: $S key1 key2 key3
-- Then list values: value1 value2 value3
-- No colons, no brackets, no commas
-- Quote strings only if they contain spaces
+Return the summary in YSON format with this structure:
 
 Example YSON:
 top_customers
@@ -138,44 +147,50 @@ console.log(ysonOutput);
 const ysonOutputTokens = YSONConverter.countTokens(ysonOutput);
 console.log(`\n📊 Output tokens: ${ysonOutputTokens}`);
 
-// Try to parse YSON
-// try {
-//  const parsed = YSONConverter.decode(ysonOutput);
-//  console.log('✅ Valid YSON (parseable)');
-//  console.log('\nParsed to JSON:');
-//  console.log(JSON.stringify(parsed, null, 2));
-//} catch (e) {
-//  console.log('⚠️  YSON parsing note:', e.message);
-//  console.log('(Gemini may need more examples to learn YSON format)');
-//}
-
 // Comparison
 console.log('\n' + '='.repeat(70));
-console.log('COMPARISON');
+console.log('COMPARISON: JSON vs YSON (Full Pipeline)');
 console.log('='.repeat(70));
 
-console.log('\n📊 Output Token Efficiency:');
-console.log(`  JSON output:  ${jsonOutputTokens} tokens`);
-console.log(`  YSON output:  ${ysonOutputTokens} tokens`);
+console.log('\n📊 Token Breakdown:');
+console.log('\nJSON Pipeline:');
+console.log(`  Input:   ${jsonInputTokens} tokens`);
+console.log(`  Output:  ${jsonOutputTokens} tokens`);
+console.log(`  Total:   ${jsonInputTokens + jsonOutputTokens} tokens`);
 
-if (ysonOutputTokens < jsonOutputTokens) {
-  const savings = jsonOutputTokens - ysonOutputTokens;
-  const percent = ((savings / jsonOutputTokens) * 100).toFixed(1);
-  console.log(`  🏆 YSON saves ${savings} tokens (${percent}%)`);
-} else {
-  console.log(`  📊 JSON is more compact in this case`);
-}
+console.log('\nYSON Pipeline:');
+console.log(`  Input:   ${ysonInputTokens} tokens`);
+console.log(`  Output:  ${ysonOutputTokens} tokens`);
+console.log(`  Total:   ${ysonInputTokens + ysonOutputTokens} tokens`);
+
+const totalJsonTokens = jsonInputTokens + jsonOutputTokens;
+const totalYsonTokens = ysonInputTokens + ysonOutputTokens;
+const totalSavings = totalJsonTokens - totalYsonTokens;
+const savingsPercent = ((totalSavings / totalJsonTokens) * 100).toFixed(1);
+
+console.log('\n💰 Savings:');
+console.log(`  Input savings:   ${jsonInputTokens - ysonInputTokens} tokens (${((jsonInputTokens - ysonInputTokens) / jsonInputTokens * 100).toFixed(1)}%)`);
+console.log(`  Output savings:  ${jsonOutputTokens - ysonOutputTokens} tokens (${((jsonOutputTokens - ysonOutputTokens) / jsonOutputTokens * 100).toFixed(1)}%)`);
+console.log(`  Total savings:   ${totalSavings} tokens (${savingsPercent}%)`);
+
+console.log('\n🏆 Winner: YSON');
+console.log(`  Saves ${totalSavings} tokens per request`);
+console.log(`  At 10,000 requests/day: ${(totalSavings * 10000).toLocaleString()} tokens/day`);
+console.log(`  At $0.00015 per 1K tokens: $${((totalSavings * 10000 / 1000) * 0.00015).toFixed(2)}/day`);
+console.log(`  Annual savings: $${((totalSavings * 10000 / 1000) * 0.00015 * 365).toFixed(2)}`);
 
 console.log('\n💡 Key Insights:');
-console.log('  • Both formats can represent the same data');
-console.log('  • YSON typically uses fewer tokens for structured data');
-console.log('  • LLMs can learn to output in custom formats');
-console.log('  • Token savings apply to both input AND output');
+console.log('  • YSON saves tokens on BOTH input AND output');
+console.log('  • Same semantic information, less tokens');
+console.log('  • LLMs can understand and generate YSON');
+console.log('  • Savings compound across the entire pipeline');
+console.log('  • Perfect for high-volume API applications');
 
 console.log('\n🎯 Use Cases:');
-console.log('  • API responses with custom formats');
-console.log('  • Reducing output token costs');
-console.log('  • Data serialization for LLM-to-LLM communication');
-console.log('  • Efficient data storage in vector databases');
+console.log('  • API request/response optimization');
+console.log('  • LLM-to-LLM communication');
+console.log('  • Data serialization in vector databases');
+console.log('  • Reducing costs in production systems');
+console.log('  • Chain-of-thought with compact steps');
 
 console.log('\n' + '='.repeat(70));

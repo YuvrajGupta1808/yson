@@ -12,7 +12,8 @@
         "gemini:retrieval": "node examples/gemini_retrieval.js",
         "gemini:optimize": "node examples/gemini_prompt_optimization.js",
         "gemini:structured": "node examples/gemini_structured_output.js",
-        "gemini:format": "node examples/gemini_format_output.js"
+        "gemini:format": "node examples/gemini_format_output.js",
+        "gemini:company": "node examples/gemini_company_questions.js"
     },
     "keywords": [
         "serialization",
