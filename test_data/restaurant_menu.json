@@ -1,0 +1,91 @@
+{
+    "restaurant": "The Golden Spoon",
+    "cuisine": "Contemporary American",
+    "rating": 4.5,
+    "menu": {
+        "appetizers": [
+            {
+                "id": "A01",
+                "name": "Truffle Fries",
+                "price": 12.99,
+                "calories": 450,
+                "vegetarian": true
+            },
+            {
+                "id": "A02",
+                "name": "Calamari",
+                "price": 14.99,
+                "calories": 380,
+                "vegetarian": false
+            },
+            {
+                "id": "A03",
+                "name": "Caprese Salad",
+                "price": 11.99,
+                "calories": 220,
+                "vegetarian": true
+            }
+        ],
+        "entrees": [
+            {
+                "id": "E01",
+                "name": "Grilled Salmon",
+                "price": 28.99,
+                "calories": 520,
+                "vegetarian": false
+            },
+            {
+                "id": "E02",
+                "name": "Ribeye Steak",
+                "price": 42.99,
+                "calories": 780,
+                "vegetarian": false
+            },
+            {
+                "id": "E03",
+                "name": "Mushroom Risotto",
+                "price": 24.99,
+                "calories": 650,
+                "vegetarian": true
+            },
+            {
+                "id": "E04",
+                "name": "Chicken Parmesan",
+                "price": 26.99,
+                "calories": 720,
+                "vegetarian": false
+            }
+        ],
+        "desserts": [
+            {
+                "id": "D01",
+                "name": "Chocolate Lava Cake",
+                "price": 9.99,
+                "calories": 580,
+                "vegetarian": true
+            },
+            {
+                "id": "D02",
+                "name": "Tiramisu",
+                "price": 8.99,
+                "calories": 450,
+                "vegetarian": true
+            },
+            {
+                "id": "D03",
+                "name": "Cheesecake",
+                "price": 8.99,
+                "calories": 520,
+                "vegetarian": true
+            }
+        ]
+    },
+    "stats": {
+        "total_items": 10,
+        "price_range": {
+            "min": 8.99,
+            "max": 42.99
+        },
+        "vegetarian_options": 6
+    }
+}

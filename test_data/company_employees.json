@@ -1,0 +1,98 @@
+{
+    "company": {
+        "name": "InnovateTech Solutions",
+        "founded": 2018,
+        "industry": "Software Development",
+        "headquarters": {
+            "city": "San Francisco",
+            "state": "California",
+            "country": "USA",
+            "address": "123 Innovation Drive"
+        },
+        "departments": [
+            {
+                "name": "Engineering",
+                "budget": 2500000,
+                "head": "Dr. James Wilson",
+                "employees": [
+                    {
+                        "id": "E001",
+                        "name": "Alice Martinez",
+                        "role": "Senior Engineer",
+                        "salary": 145000,
+                        "years": 4
+                    },
+                    {
+                        "id": "E002",
+                        "name": "Bob Thompson",
+                        "role": "Tech Lead",
+                        "salary": 165000,
+                        "years": 6
+                    },
+                    {
+                        "id": "E003",
+                        "name": "Carol Zhang",
+                        "role": "Software Engineer",
+                        "salary": 125000,
+                        "years": 2
+                    }
+                ]
+            },
+            {
+                "name": "Product",
+                "budget": 1200000,
+                "head": "Sarah Kim",
+                "employees": [
+                    {
+                        "id": "P001",
+                        "name": "David Lee",
+                        "role": "Product Manager",
+                        "salary": 135000,
+                        "years": 5
+                    },
+                    {
+                        "id": "P002",
+                        "name": "Emma Brown",
+                        "role": "UX Designer",
+                        "salary": 115000,
+                        "years": 3
+                    }
+                ]
+            },
+            {
+                "name": "Sales",
+                "budget": 1800000,
+                "head": "Michael Roberts",
+                "employees": [
+                    {
+                        "id": "S001",
+                        "name": "Frank Garcia",
+                        "role": "Sales Director",
+                        "salary": 155000,
+                        "years": 7
+                    },
+                    {
+                        "id": "S002",
+                        "name": "Grace Taylor",
+                        "role": "Account Executive",
+                        "salary": 95000,
+                        "years": 2
+                    },
+                    {
+                        "id": "S003",
+                        "name": "Henry Anderson",
+                        "role": "Sales Rep",
+                        "salary": 75000,
+                        "years": 1
+                    }
+                ]
+            }
+        ],
+        "metrics": {
+            "total_employees": 8,
+            "total_payroll": 1010000,
+            "average_salary": 126250,
+            "average_tenure": 3.75
+        }
+    }
+}

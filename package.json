@@ -1,0 +1,29 @@
+{
+    "name": "yson",
+    "version": "0.1.0",
+    "description": "Hyper-compact LLM-native data format",
+    "type": "module",
+    "main": "src/index.js",
+    "scripts": {
+        "demo": "node examples/demo.js",
+        "v2": "node examples/yson_v2_comparison.js",
+        "benchmark": "node benchmark/run_benchmark.js",
+        "gemini:compare": "node examples/gemini_comparison.js",
+        "gemini:retrieval": "node examples/gemini_retrieval.js",
+        "gemini:optimize": "node examples/gemini_prompt_optimization.js",
+        "gemini:structured": "node examples/gemini_structured_output.js",
+        "gemini:format": "node examples/gemini_format_output.js"
+    },
+    "keywords": [
+        "serialization",
+        "llm",
+        "compression",
+        "json"
+    ],
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "@google/generative-ai": "^0.21.0",
+        "dotenv": "^17.2.3"
+    }
+}

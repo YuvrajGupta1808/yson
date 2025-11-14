@@ -1,0 +1,82 @@
+{
+    "store": "TechMart",
+    "orders": [
+        {
+            "order_id": "ORD-2024-001",
+            "customer": "Sarah Johnson",
+            "email": "sarah.j@email.com",
+            "total": 1299.97,
+            "status": "shipped",
+            "items": [
+                {
+                    "product": "Laptop Pro 15",
+                    "quantity": 1,
+                    "price": 999.99
+                },
+                {
+                    "product": "Wireless Mouse",
+                    "quantity": 2,
+                    "price": 49.99
+                },
+                {
+                    "product": "USB-C Cable",
+                    "quantity": 3,
+                    "price": 19.99
+                }
+            ]
+        },
+        {
+            "order_id": "ORD-2024-002",
+            "customer": "Michael Chen",
+            "email": "m.chen@email.com",
+            "total": 449.98,
+            "status": "pending",
+            "items": [
+                {
+                    "product": "Mechanical Keyboard",
+                    "quantity": 1,
+                    "price": 149.99
+                },
+                {
+                    "product": "Monitor Stand",
+                    "quantity": 1,
+                    "price": 79.99
+                },
+                {
+                    "product": "Webcam HD",
+                    "quantity": 1,
+                    "price": 89.99
+                }
+            ]
+        },
+        {
+            "order_id": "ORD-2024-003",
+            "customer": "Emily Rodriguez",
+            "email": "emily.r@email.com",
+            "total": 2599.95,
+            "status": "delivered",
+            "items": [
+                {
+                    "product": "Gaming Desktop",
+                    "quantity": 1,
+                    "price": 1999.99
+                },
+                {
+                    "product": "Gaming Monitor 27",
+                    "quantity": 1,
+                    "price": 399.99
+                },
+                {
+                    "product": "RGB Headset",
+                    "quantity": 1,
+                    "price": 199.97
+                }
+            ]
+        }
+    ],
+    "summary": {
+        "total_orders": 3,
+        "total_revenue": 4349.90,
+        "average_order": 1449.97
+    }
+}
