@@ -1,0 +1,46 @@
+{
+    "store": "TechMart",
+    "location": "San Francisco",
+    "products": [
+        {
+            "id": "P001",
+            "name": "Laptop Pro",
+            "price": 1299.99,
+            "stock": 45,
+            "category": "Electronics"
+        },
+        {
+            "id": "P002",
+            "name": "Wireless Mouse",
+            "price": 29.99,
+            "stock": 200,
+            "category": "Accessories"
+        },
+        {
+            "id": "P003",
+            "name": "USB-C Cable",
+            "price": 19.99,
+            "stock": 350,
+            "category": "Accessories"
+        },
+        {
+            "id": "P004",
+            "name": "Monitor 27in",
+            "price": 399.99,
+            "stock": 78,
+            "category": "Electronics"
+        },
+        {
+            "id": "P005",
+            "name": "Keyboard Mechanical",
+            "price": 149.99,
+            "stock": 120,
+            "category": "Accessories"
+        }
+    ],
+    "stats": {
+        "total_products": 5,
+        "total_value": 12345.67,
+        "avg_price": 379.99
+    }
+}

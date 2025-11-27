@@ -1,22 +1,60 @@
 /**
- * Gemini API Retrieval Test
- * Tests information retrieval accuracy across formats
+ * Accuracy Test
+ * Verify that YSON maintains 100% accuracy
+ * Tests information retrieval across formats
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import 'dotenv/config';
 import { readFileSync } from 'fs';
 import { JSONParser, TOONConverter, YSONConverter } from '../src/index.js';
 
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY ?? "YOUR_GEMINI_API_KEY";
 
-if (!apiKey) {
+if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
   console.error('❌ Set GEMINI_API_KEY environment variable');
   process.exit(1);
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+// Helper function to call Gemini API
+async function callGeminiAPI(content) {
+  const body = {
+    "contents": [{
+      "parts": [{
+        "text": content
+      }]
+    }],
+    "generationConfig": {
+      "temperature": 0.6,
+      "topP": 0.95,
+      "maxOutputTokens": 16384
+    }
+  };
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  const fullResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const usage = data.usageMetadata ? {
+    prompt_tokens: data.usageMetadata.promptTokenCount,
+    completion_tokens: data.usageMetadata.candidatesTokenCount,
+    total_tokens: data.usageMetadata.totalTokenCount
+  } : null;
+  
+  return {
+    text: fullResponse.trim(),
+    usage: usage
+  };
+}
 
 // Load test data
 const data = JSON.parse(readFileSync('test_data/restaurant_menu.json', 'utf8'));
@@ -70,14 +108,16 @@ Question: ${q}
 
 Provide a concise, direct answer.`;
 
-    const result = await model.generateContent(prompt);
-    const answer = result.response.text().trim();
+    const result = await callGeminiAPI(prompt);
     
     console.log(`\nQ: ${q}`);
-    console.log(`A: ${answer}`);
+    console.log(`A: ${result.text}`);
     console.log(`Expected: ${expected}`);
+    if (result.usage) {
+      console.log(`📊 Tokens - Input: ${result.usage.prompt_tokens}, Output: ${result.usage.completion_tokens}`);
+    }
     
-    results.push({ question: q, answer, expected });
+    results.push({ question: q, answer: result.text, expected });
     
     // Small delay between questions
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -90,15 +130,15 @@ Provide a concise, direct answer.`;
 console.log('\n📊 Testing retrieval accuracy across formats...\n');
 console.log('⚠️  Note: This will take ~1 minute due to rate limits\n');
 
-const jsonResults = await testFormat('JSON', jsonStr);
+await testFormat('JSON', jsonStr);
 console.log('\n⏳ Waiting 20 seconds to avoid rate limits...');
 await new Promise(resolve => setTimeout(resolve, 20000)); // Rate limit delay
 
-const toonResults = await testFormat('TOON', toonStr);
+await testFormat('TOON', toonStr);
 console.log('\n⏳ Waiting 20 seconds to avoid rate limits...');
 await new Promise(resolve => setTimeout(resolve, 20000));
 
-const ysonResults = await testFormat('YSON', ysonStr);
+await testFormat('YSON', ysonStr);
 
 // Summary
 console.log('\n' + '='.repeat(70));

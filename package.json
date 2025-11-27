@@ -1,30 +1,56 @@
 {
-    "name": "yson",
+    "name": "yson-format",
     "version": "0.1.0",
-    "description": "Hyper-compact LLM-native data format",
+    "description": "Hyper-compact LLM-native data format that saves 35-60% tokens compared to JSON",
     "type": "module",
     "main": "src/index.js",
+    "exports": {
+        ".": "./src/index.js"
+    },
+    "files": [
+        "src/**/*",
+        "README.md",
+        "LICENSE"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/YuvrajGupta1808/yson.git"
+    },
+    "bugs": {
+        "url": "https://github.com/YuvrajGupta1808/yson/issues"
+    },
+    "homepage": "https://github.com/YuvrajGupta1808/yson#readme",
     "scripts": {
         "demo": "node examples/demo.js",
-        "v2": "node examples/yson_v2_comparison.js",
         "benchmark": "node benchmark/run_benchmark.js",
-        "gemini:compare": "node examples/gemini_comparison.js",
-        "gemini:retrieval": "node examples/gemini_retrieval.js",
-        "gemini:optimize": "node examples/gemini_prompt_optimization.js",
-        "gemini:structured": "node examples/gemini_structured_output.js",
-        "gemini:format": "node examples/gemini_format_output.js",
-        "gemini:company": "node examples/gemini_company_questions.js"
+        "compare": "node examples/format_comparison.js",
+        "accuracy": "node examples/accuracy_test.js",
+        "savings": "node examples/token_savings.js",
+        "io": "node examples/input_output_comparison.js",
+        "company": "node examples/company_analysis.js",
+        "opik": "node examples/input_output_opik.js"
     },
     "keywords": [
         "serialization",
         "llm",
         "compression",
-        "json"
+        "json",
+        "ai",
+        "openai",
+        "gemini",
+        "claude",
+        "tokens",
+        "rag",
+        "data-format"
     ],
-    "author": "",
+    "author": "Yuvraj Gupta <yuvrajgupta1808@gmail.com>",
     "license": "MIT",
     "dependencies": {
+        "yson-format": "^0.1.0"
+    },
+    "devDependencies": {
         "@google/generative-ai": "^0.21.0",
-        "dotenv": "^17.2.3"
+        "dotenv": "^17.2.3",
+        "opik": "^1.9.13"
     }
 }

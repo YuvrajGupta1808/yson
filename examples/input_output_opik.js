@@ -1,22 +1,94 @@
 /**
- * Gemini Format Output Comparison
- * JSON input → JSON output vs YSON input → YSON output
+ * Input/Output with Opik Tracing
+ * Full pipeline comparison with observability
+ * Track every token saved
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import 'dotenv/config';
 import { readFileSync } from 'fs';
+import { Opik } from 'opik';
 import { JSONParser, YSONConverter } from '../src/index.js';
 
-const apiKey = process.env.GEMINI_API_KEY;
+// Initialize Opik client with project name
+const opik = new Opik({
+  projectName: 'yson-format-comparison'
+});
 
-if (!apiKey) {
+const apiKey = process.env.GEMINI_API_KEY ?? "YOUR_GEMINI_API_KEY";
+
+if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
   console.error('❌ Set GEMINI_API_KEY environment variable');
   process.exit(1);
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+// Helper function to call Gemini API with Opik tracing
+async function callGeminiAPI(content, spanName, metadata = {}) {
+  // Create Opik trace
+  const trace = opik.trace({
+    name: spanName,
+    input: { prompt: content },
+    metadata: metadata
+  });
+
+  try {
+    const body = {
+      "contents": [{
+        "parts": [{
+          "text": content
+        }]
+      }],
+      "generationConfig": {
+        "temperature": 0.6,
+        "topP": 0.95,
+        "maxOutputTokens": 16384
+      }
+    };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const fullResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const usage = data.usageMetadata ? {
+      prompt_tokens: data.usageMetadata.promptTokenCount,
+      completion_tokens: data.usageMetadata.candidatesTokenCount,
+      total_tokens: data.usageMetadata.totalTokenCount
+    } : null;
+    
+    const result = {
+      text: fullResponse.trim(),
+      usage: usage,
+      traceId: trace.id
+    };
+
+    // End trace with output
+    trace.end({
+      output: result.text,
+      usage: result.usage
+    });
+
+    return result;
+  } catch (error) {
+    trace.end({ error: error.message });
+    throw error;
+  }
+}
+
+// Create main trace for the comparison
+const mainTrace = opik.trace({
+  name: 'Format Comparison',
+  input: { task: 'JSON vs YSON format comparison' },
+  metadata: { project: 'yson-format-comparison' }
+});
 
 // Load test data
 const data = JSON.parse(readFileSync('test_data/ecommerce_orders.json', 'utf8'));
@@ -37,6 +109,10 @@ const analysisTask = `Analyze the e-commerce orders and create a summary report 
 2. Most popular products (by quantity sold)
 3. Order status breakdown (count by status)
 4. Total revenue`;
+
+// Arrays to store trace information
+const jsonTraces = [];
+const ysonTraces = [];
 
 // Test 1: JSON Input → JSON Output
 console.log('\n' + '='.repeat(70));
@@ -71,8 +147,11 @@ Return the summary in JSON format with this structure:
 Output ONLY the JSON, no explanation.`;
 
 console.log('\n🤖 Asking Gemini to output JSON format...\n');
-const jsonResult = await model.generateContent(jsonPrompt);
-const jsonOutput = jsonResult.response.text().trim();
+const jsonResult = await callGeminiAPI(jsonPrompt, 'JSON Input → JSON Output', {
+  format: 'JSON',
+  input_tokens: jsonInputTokens
+});
+const jsonOutput = jsonResult.text;
 
 // Extract JSON from markdown if present
 let cleanJsonOutput = jsonOutput;
@@ -84,12 +163,23 @@ if (jsonMatch) {
 console.log('📤 Gemini JSON Output:');
 console.log(cleanJsonOutput);
 
-const jsonOutputTokens = JSONParser.countTokens(cleanJsonOutput);
+if (jsonResult.usage) {
+  console.log(`\n📊 Actual tokens - Input: ${jsonResult.usage.prompt_tokens}, Output: ${jsonResult.usage.completion_tokens}, Total: ${jsonResult.usage.total_tokens}`);
+}
+const jsonOutputTokens = jsonResult.usage?.completion_tokens || JSONParser.countTokens(cleanJsonOutput);
 console.log(`\n📊 Output tokens: ${jsonOutputTokens}`);
+
+// Store trace information
+jsonTraces.push({
+  task: 'JSON Input → JSON Output',
+  answer: jsonResult.text,
+  usage: jsonResult.usage,
+  traceId: jsonResult.traceId
+});
 
 // Validate JSON
 try {
-  const parsed = JSON.parse(cleanJsonOutput);
+  JSON.parse(cleanJsonOutput);
   console.log('✅ Valid JSON');
 } catch (e) {
   console.log('⚠️  JSON parsing error:', e.message);
@@ -132,8 +222,11 @@ total_revenue 4349.90
 Output ONLY the YSON format, no explanation.`;
 
 console.log('\n🤖 Asking Gemini to output YSON format...\n');
-const ysonResult = await model.generateContent(ysonPrompt);
-let ysonOutput = ysonResult.response.text().trim();
+const ysonResult = await callGeminiAPI(ysonPrompt, 'YSON Input → YSON Output', {
+  format: 'YSON',
+  input_tokens: ysonInputTokens
+});
+let ysonOutput = ysonResult.text;
 
 // Extract from markdown if present
 const ysonMatch = ysonOutput.match(/```\n([\s\S]*?)\n```/);
@@ -144,8 +237,19 @@ if (ysonMatch) {
 console.log('📤 Gemini YSON Output:');
 console.log(ysonOutput);
 
-const ysonOutputTokens = YSONConverter.countTokens(ysonOutput);
+if (ysonResult.usage) {
+  console.log(`\n📊 Actual tokens - Input: ${ysonResult.usage.prompt_tokens}, Output: ${ysonResult.usage.completion_tokens}, Total: ${ysonResult.usage.total_tokens}`);
+}
+const ysonOutputTokens = ysonResult.usage?.completion_tokens || YSONConverter.countTokens(ysonOutput);
 console.log(`\n📊 Output tokens: ${ysonOutputTokens}`);
+
+// Store trace information
+ysonTraces.push({
+  task: 'YSON Input → YSON Output',
+  answer: ysonResult.text,
+  usage: ysonResult.usage,
+  traceId: ysonResult.traceId
+});
 
 // Comparison
 console.log('\n' + '='.repeat(70));
@@ -192,5 +296,47 @@ console.log('  • LLM-to-LLM communication');
 console.log('  • Data serialization in vector databases');
 console.log('  • Reducing costs in production systems');
 console.log('  • Chain-of-thought with compact steps');
+
+console.log('\n' + '='.repeat(70));
+
+// End main trace with comparison results
+mainTrace.end({
+  output: `JSON Total: ${jsonInputTokens + jsonOutputTokens} tokens | YSON Total: ${ysonInputTokens + ysonOutputTokens} tokens | Savings: ${totalSavings} tokens (${savingsPercent}%)`,
+  usage: {
+    prompt_tokens: (jsonResult.usage?.prompt_tokens || 0) + (ysonResult.usage?.prompt_tokens || 0),
+    completion_tokens: (jsonResult.usage?.completion_tokens || 0) + (ysonResult.usage?.completion_tokens || 0),
+    total_tokens: (jsonResult.usage?.total_tokens || 0) + (ysonResult.usage?.total_tokens || 0)
+  }
+});
+
+// Flush Opik traces
+await opik.flush();
+
+console.log('\n' + '='.repeat(70));
+console.log('OPIK TRACKING SUMMARY');
+console.log('='.repeat(70));
+
+console.log('\n📊 Trace Information:');
+console.log('\nJSON Format:');
+jsonTraces.forEach((trace) => {
+  console.log(`  Task: ${trace.task}`);
+  console.log(`  Trace ID: ${trace.traceId}`);
+  if (trace.usage) {
+    console.log(`  Tokens - Input: ${trace.usage.prompt_tokens}, Output: ${trace.usage.completion_tokens}, Total: ${trace.usage.total_tokens}`);
+  }
+});
+
+console.log('\nYSON Format:');
+ysonTraces.forEach((trace) => {
+  console.log(`  Task: ${trace.task}`);
+  console.log(`  Trace ID: ${trace.traceId}`);
+  if (trace.usage) {
+    console.log(`  Tokens - Input: ${trace.usage.prompt_tokens}, Output: ${trace.usage.completion_tokens}, Total: ${trace.usage.total_tokens}`);
+  }
+});
+
+console.log('\n✅ All traces logged to Opik');
+console.log('   Project: yson-format-comparison');
+console.log('   View your traces at: https://www.comet.com/opik');
 
 console.log('\n' + '='.repeat(70));

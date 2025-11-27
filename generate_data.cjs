@@ -16,10 +16,6 @@ const departmentsList = [
   { name: "Sales", budget: 2000000 },
   { name: "Marketing", budget: 1100000 },
   { name: "Design", budget: 900000 },
-  { name: "Research", budget: 3000000 },
-  { name: "DevOps", budget: 1600000 },
-  { name: "Customer Success", budget: 1300000 },
-  { name: "Finance", budget: 1800000 },
   { name: "HR", budget: 700000 }
 ];
 
@@ -38,8 +34,8 @@ function generateEmployee(deptPrefix, idNum) {
   };
 }
 
-function generateDepartment(deptData, index) {
-  const employeesCount = rand(50, 80); // Enough to push total lines past 1000
+function generateDepartment(deptData) {
+  const employeesCount = rand(10, 15); // Enough to push total lines past 1000
   const employees = [];
 
   for (let i = 1; i <= employeesCount; i++) {
@@ -78,8 +74,8 @@ let totalEmployees = 0;
 let totalPayroll = 0;
 let totalYears = 0;
 
-departmentsList.forEach((dept, index) => {
-  const d = generateDepartment(dept, index);
+departmentsList.forEach((dept) => {
+  const d = generateDepartment(dept);
   company.company.departments.push(d);
 
   d.employees.forEach(emp => {

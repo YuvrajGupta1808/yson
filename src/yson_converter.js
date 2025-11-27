@@ -104,6 +104,10 @@ export class YSONConverter {
       }
       return value;
     }
+    // For objects/arrays, use JSON as fallback (shouldn't happen in schema mode)
+    if (typeof value === 'object') {
+      return JSON.stringify(value);
+    }
     return String(value);
   }
 
